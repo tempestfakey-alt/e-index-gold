@@ -85,6 +85,47 @@ export type Database = {
           },
         ]
       }
+      grades: {
+        Row: {
+          created_at: string | null
+          date_recorded: string
+          enrollment_id: string
+          grade_type: Database["public"]["Enums"]["grade_type"]
+          id: string
+          max_score: number
+          score: number
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          date_recorded?: string
+          enrollment_id: string
+          grade_type: Database["public"]["Enums"]["grade_type"]
+          id?: string
+          max_score?: number
+          score: number
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          date_recorded?: string
+          enrollment_id?: string
+          grade_type?: Database["public"]["Enums"]["grade_type"]
+          id?: string
+          max_score?: number
+          score?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grades_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       professors: {
         Row: {
           academic_rank: string
@@ -232,6 +273,7 @@ export type Database = {
     }
     Enums: {
       attendance_status: "present" | "late" | "absent"
+      grade_type: "exam" | "quiz" | "activity"
       user_role: "student" | "professor"
     }
     CompositeTypes: {
@@ -361,6 +403,7 @@ export const Constants = {
   public: {
     Enums: {
       attendance_status: ["present", "late", "absent"],
+      grade_type: ["exam", "quiz", "activity"],
       user_role: ["student", "professor"],
     },
   },

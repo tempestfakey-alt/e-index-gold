@@ -3,10 +3,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, BookOpen, Users, Calendar } from "lucide-react";
+import { Plus, BookOpen, Users, Calendar, ClipboardList } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import CreateSubjectDialog from "@/components/CreateSubjectDialog";
 import EnrollStudentDialog from "@/components/EnrollStudentDialog";
+import RecordGradesDialog from "@/components/RecordGradesDialog";
 
 interface Subject {
   id: string;
@@ -30,6 +31,7 @@ const ProfessorDashboard = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
+  const [gradesDialogOpen, setGradesDialogOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
 
   useEffect(() => {
@@ -73,6 +75,11 @@ const ProfessorDashboard = () => {
   const handleEnrollClick = (subjectId: string) => {
     setSelectedSubject(subjectId);
     setEnrollDialogOpen(true);
+  };
+
+  const handleGradesClick = (subjectId: string) => {
+    setSelectedSubject(subjectId);
+    setGradesDialogOpen(true);
   };
 
   if (!professor) return <div className="min-h-screen bg-gradient-gold-subtle flex items-center justify-center">Loading...</div>;
@@ -137,14 +144,20 @@ const ProfessorDashboard = () => {
                         ))}
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t">
+                      <div className="space-y-2 pt-2 border-t">
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <Users className="h-4 w-4" />
                           <span>{subject._count?.enrollments || 0} students</span>
                         </div>
-                        <Button size="sm" variant="outline" onClick={() => handleEnrollClick(subject.id)}>
-                          Enroll Students
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => handleEnrollClick(subject.id)} className="flex-1">
+                            Enroll Students
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleGradesClick(subject.id)} className="flex-1">
+                            <ClipboardList className="h-4 w-4 mr-1" />
+                            Record Grades
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -163,12 +176,20 @@ const ProfessorDashboard = () => {
       />
 
       {selectedSubject && (
-        <EnrollStudentDialog
-          open={enrollDialogOpen}
-          onOpenChange={setEnrollDialogOpen}
-          subjectId={selectedSubject}
-          onSuccess={() => fetchSubjects(professor.id)}
-        />
+        <>
+          <EnrollStudentDialog
+            open={enrollDialogOpen}
+            onOpenChange={setEnrollDialogOpen}
+            subjectId={selectedSubject}
+            onSuccess={() => fetchSubjects(professor.id)}
+          />
+          <RecordGradesDialog
+            open={gradesDialogOpen}
+            onOpenChange={setGradesDialogOpen}
+            subjectId={selectedSubject}
+            onSuccess={() => fetchSubjects(professor.id)}
+          />
+        </>
       )}
     </div>
   );

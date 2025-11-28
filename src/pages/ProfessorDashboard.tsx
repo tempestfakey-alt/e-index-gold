@@ -126,6 +126,20 @@ const ProfessorDashboard = () => {
   };
 
   const fetchGradesForSubject = async (subjectId: string) => {
+    // First get enrollments for this subject
+    const { data: enrollments } = await supabase
+      .from("enrollments")
+      .select("id")
+      .eq("subject_id", subjectId);
+
+    if (!enrollments || enrollments.length === 0) {
+      setGrades(prev => ({ ...prev, [subjectId]: [] }));
+      return;
+    }
+
+    const enrollmentIds = enrollments.map(e => e.id);
+
+    // Then get grades for those enrollments
     const { data: gradesData } = await supabase
       .from("grades")
       .select(`
@@ -137,7 +151,7 @@ const ProfessorDashboard = () => {
           )
         )
       `)
-      .eq("enrollments.subject_id", subjectId)
+      .in("enrollment_id", enrollmentIds)
       .order("date_recorded", { ascending: false });
 
     if (gradesData) {
@@ -152,9 +166,25 @@ const ProfessorDashboard = () => {
       .select("id")
       .eq("professor_id", professorId);
 
-    if (!professorSubjects) return;
+    if (!professorSubjects || professorSubjects.length === 0) {
+      setAttendance([]);
+      return;
+    }
 
     const subjectIds = professorSubjects.map(s => s.id);
+
+    // Get enrollments for these subjects
+    const { data: enrollmentsData } = await supabase
+      .from("enrollments")
+      .select("id")
+      .in("subject_id", subjectIds);
+
+    if (!enrollmentsData || enrollmentsData.length === 0) {
+      setAttendance([]);
+      return;
+    }
+
+    const enrollmentIds = enrollmentsData.map(e => e.id);
 
     // Fetch attendance for the last 7 days
     const sevenDaysAgo = new Date();
@@ -176,7 +206,7 @@ const ProfessorDashboard = () => {
           )
         )
       `)
-      .in("enrollments.subject_id", subjectIds)
+      .in("enrollment_id", enrollmentIds)
       .gte("date", sevenDaysAgo.toISOString().split('T')[0])
       .order("date", { ascending: false })
       .order("scanned_at", { ascending: false });
